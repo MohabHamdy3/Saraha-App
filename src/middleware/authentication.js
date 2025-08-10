@@ -39,6 +39,11 @@ export const authentication = async (req, res, next) => {
       cause: 401,
     });
   }
+  if(!user?.confirmed || user?.isFrozen == true ) {
+    throw new Error("user not confirmed or is frozen", {
+      cause: 401,
+    });
+  }
   req.user = user;
   req.decoded = decoded;
   return next();

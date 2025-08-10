@@ -70,4 +70,8 @@ export const freezeProfileSchema = {
   })
 }
 
+export const updateProfileImageSchema = {
+  file : generalRules.file.required()
+}
+
 export const unFreezeProfileSchema = new Object(freezeProfileSchema)

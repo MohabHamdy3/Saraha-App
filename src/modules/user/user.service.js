@@ -557,3 +557,36 @@ export const unFreezeProfile = async (req, res, next) => {
     data: user,
   });
 };
+
+
+export const updateProfileImage = async (req, res, next) => {
+    const {secure_url , public_id} = await cloudinary.uploader.upload(req.file.path, {
+      folder: "users/profileImage",
+      allowed_formats: ["jpg", "png", "jpeg"],
+    });
+    if (!secure_url || !public_id) {
+      throw new Error("Failed to upload image", {
+        cause: 400,
+      });
+    }
+    const user = await userModel.findByIdAndUpdate(
+      { _id: req.user.id },
+      {
+        image: { secure_url, public_id },
+      }
+    );
+    if (!user) {
+      throw new Error("Failed to update profile image", {
+        cause: 400,
+      });
+    }
+    await cloudinary.uploader.destroy(user.image.public_id);
+    return res.status(200).json({
+      message: "Profile image updated successfully",
+      status: 200,
+      user,
+      data: user,
+      secure_url,
+      public_id,
+    });
+};

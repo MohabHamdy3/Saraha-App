@@ -1,11 +1,13 @@
 import connectDB from "./DB/connectionDB.js";
 import messageRouter from "./modules/message/message.controller.js";
 import userRouter from "./modules/user/user.controller.js";
-import { globalErrorHandling } from "./midddleware/globalErrorHandling.js";
+import { globalErrorHandling } from "./middleware/globalErrorHandling.js";
 import cors from "cors";    
+import morgan from "morgan";
+import rateLimit from "express-rate-limit";
 
-var whitelist = [process.env.CLIENT_URL , process.env.ADMIN_URL , process.env.WEB_CLIENT_URL,undefined ]
-var corsOptions = {
+const whitelist = [process.env.CLIENT_URL , process.env.ADMIN_URL , process.env.WEB_CLIENT_URL,undefined ]
+const corsOptions = {
   origin: function (origin, callback) {
     if (whitelist.indexOf(origin) !== -1) {
       callback(null, true)
@@ -14,8 +16,20 @@ var corsOptions = {
     }
   }
 }
-
+const limiter = rateLimit({
+  windowMs: 60 * 1000, 
+  max: 5,
+  message: { error : "Too many requests from this IP, please try again later"},
+  handler: (req , res , next , options) => {
+      res.status(options.statusCode).json({
+          status: "fail",
+          message: options.message
+      });
+  },
+  skipFailedRequests: true
+});
 const bootstrap = (app , express)=> {
+    app.use(limiter);
     app.use(cors(corsOptions));
     app.use(express.json());
     connectDB();
@@ -27,6 +41,7 @@ const bootstrap = (app , express)=> {
             cause : 404,
         })
     })
+    app.use(morgan("dev")); 
 
     app.use(globalErrorHandling)
 }

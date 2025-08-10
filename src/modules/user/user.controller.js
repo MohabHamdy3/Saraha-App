@@ -1,12 +1,13 @@
 import { Router } from "express";
-import { signUp, loginUser, getProfile, confirmEmail, logoutUser, refreshToken, updatePassword, forgetPassword, resetPassword, updateProfile, getProfileData, freezeProfile, unFreezeProfile, loginwithGoogle } from "./user.service.js";
-import { forgotPasswordSchema, freezeProfileSchema, resetPasswordSchema, signInSchema, signUpSchema, updatePasswordShema, updateProfileSchema } from "./user.validator.js";
-import { validation ,authorization , authentication } from "../../midddleware/index.js";
+import { signUp, loginUser, getProfile, confirmEmail, logoutUser, refreshToken, updatePassword, forgetPassword, resetPassword, updateProfile, getProfileData, freezeProfile, unFreezeProfile, loginwithGoogle, updateProfileImage } from "./user.service.js";
+import { forgotPasswordSchema, freezeProfileSchema, resetPasswordSchema, signInSchema, signUpSchema, updatePasswordShema, updateProfileImageSchema, updateProfileSchema } from "./user.validator.js";
+import { validation ,authorization , authentication } from "../../middleware/index.js";
 import { userRoles } from "../../DB/models/user.model.js";
-import { allowedExtensions, MulterHost } from "../../midddleware/multer.js";
+import { allowedExtensions, MulterHost } from "../../middleware/multer.js";
+import messageRouter from "../message/message.controller.js";
 
-const userRouter = Router();
-
+const userRouter = Router({caseSensitive: true});
+userRouter  .use("/:id/messages", messageRouter);
 userRouter.post("/signup",MulterHost({ customPath : "users" , customExtensions : [...allowedExtensions.images, ...allowedExtensions.documents]}).single("attachment"), validation(signUpSchema), signUp );
 userRouter.patch("/confirmEmail/:token" ,confirmEmail);
 userRouter.post("/login",validation(signInSchema), loginUser );
@@ -19,6 +20,7 @@ userRouter.patch("/updatePassword" , validation(updatePasswordShema),authenticat
 userRouter.patch("/forgetPassword" , validation(forgotPasswordSchema), forgetPassword); 
 userRouter.patch("/resetPassword" , validation(resetPasswordSchema), resetPassword);
 userRouter.patch("/updateProfile" , validation(updateProfileSchema) , authentication, authorization([userRoles.user]), updateProfile);
+userRouter.patch("/updateProfileImage" , authentication, MulterHost({ customPath : "users" , customExtensions : [...allowedExtensions.images, ...allowedExtensions.documents]}).single("attachment") ,validation(updateProfileImageSchema), updateProfileImage);
 userRouter.patch("/freeze/{:id}" , validation(freezeProfileSchema) , authentication ,  freezeProfile);
 userRouter.patch("/unFreeze/{:id}" , validation(freezeProfileSchema) , authentication, unFreezeProfile);
 
