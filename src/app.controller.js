@@ -1,3 +1,9 @@
+import path from "path"
+import dotenv from "dotenv"
+dotenv.config({path : path.resolve("src/config/.env")})
+import express from 'express';
+const app = express();
+const PORT = process.env.PORT || 3000;
 import connectDB from "./DB/connectionDB.js";
 import messageRouter from "./modules/message/message.controller.js";
 import userRouter from "./modules/user/user.controller.js";
@@ -18,7 +24,7 @@ const corsOptions = {
   }
 }
 
-const bootstrap = (app , express)=> {
+const bootstrap = ()=> {
     app.use(helmet());
     app.use(OTPLimiter);
     app.use(cors(corsOptions));
@@ -34,7 +40,10 @@ const bootstrap = (app , express)=> {
     })
     app.use(morgan("dev")); 
 
-    app.use(globalErrorHandling)
+    app.use(globalErrorHandling);
+    app.listen(PORT, () => {
+      console.log(`Server is running on http://localhost:${PORT}`);
+    });
 }
 
 export default bootstrap;
